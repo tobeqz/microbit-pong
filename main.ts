@@ -15,6 +15,10 @@
  * Vind andere micro:bit
  */
 
+import log from "./mod.ts"
+
+log("MODULE")
+
 console.log("Lolt ")
 
 interface Coord {
