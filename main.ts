@@ -15,7 +15,8 @@
  * Vind andere micro:bit
  */
 
-import log from "./mod.ts"
+const log = require("./mod.ts")
+
 
 log("MODULE")
 
