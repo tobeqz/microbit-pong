@@ -15,6 +15,8 @@
  * Vind andere micro:bit
  */
 
+console.log("Lolt ")
+
 interface Coord {
     x: number
     y: number
