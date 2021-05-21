@@ -280,7 +280,7 @@ class MicroPong {
     constructor() {
         this.p1 = new Player(0, 0)        
         this.p2 = new Player(9, 0)
-        this.ball = new Ball(1, 0, 1)
+        this.ball = new Ball(5, 0, 1)
 
         r_events.registerEvent("render")
         r_events.registerEvent("player_position")
