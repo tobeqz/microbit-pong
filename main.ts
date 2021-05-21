@@ -278,6 +278,7 @@ class MicroPong {
     p2: Player
     ownPlayer: Player
     ball: Ball
+    ballInterval: number // Aantal seconden hoe lang het de bal duurt om 1 pixel te bewegen
 
     constructor() {
         this.p1 = new Player(0, 0)        
@@ -302,12 +303,19 @@ class MicroPong {
             }
         })
 
-        if (handshake.isServer) { // Server
+        if (handshake.isServer) { // Server event listeners
             r_events.on("player_position_update", (pos_as_str: string) => {
                 // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
             })
         } 
+
+        control.inBackground(() => {
+            while (true) {
+                basic.pause(this.ballInterval*1000)
+                this.ball.moveX(this.ball.velocity)
+            }
+        })
     }
 
     render() {
