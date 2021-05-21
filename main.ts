@@ -131,6 +131,7 @@ class RadioEventHandler {
 
         if (!event) {
             event = new RadioEvent(eventName, this.lastEventId++) 
+            this.events.push(event)
         }
         
         const listener = new RadioEventListener(event, eventHandler)
