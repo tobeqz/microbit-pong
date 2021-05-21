@@ -15,13 +15,6 @@
  * Vind andere micro:bit
  */
 
-const log = require("./mod.ts")
-
-
-log("MODULE")
-
-console.log("Lolt ")
-
 interface Coord {
     x: number
     y: number
