@@ -201,7 +201,7 @@ class RadioHandshake {
 }
 radio.onReceivedString(str => {
     console.log(str)
-}
+})
 
 const handshake = new RadioHandshake()
 
