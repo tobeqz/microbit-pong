@@ -124,7 +124,7 @@ class RadioEventHandler {
         this.eventListeners = []
         this.events = []
         this.lastEventId = 0
-        r.onReceive(str => {
+        r.onReceive((str: string) => {
             // Deserialize
             let eventIdAsStr = ""
             let eventContent = ""
