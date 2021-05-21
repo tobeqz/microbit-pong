@@ -64,7 +64,7 @@ class RadioWrapper {
         this.callbacks = []
 
         let full_string = ""
-        b_radio.onReceivedString(slice: string => {
+        b_radio.onReceivedString((slice: string) => {
             full_string += slice
             if (slice[slice.length-1] == "\u{03}") {
                 for (const callback of this.callbacks) {
