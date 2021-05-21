@@ -32,7 +32,7 @@ class BetterRadio {
     constructor() {
         this.callbacks = []
 
-        radio.onReceivedString(str => {
+        radio.onReceivedString((str: string) => {
             for (const callback of this.callbacks) {
                 callback(str)
             }
@@ -64,7 +64,7 @@ class RadioWrapper {
         this.callbacks = []
 
         let full_string = ""
-        b_radio.onReceivedString(slice => {
+        b_radio.onReceivedString(slice: string => {
             full_string += slice
             if (slice[slice.length-1] == "\u{03}") {
                 for (const callback of this.callbacks) {
@@ -222,7 +222,7 @@ class RadioHandshake {
         }
     }
 }
-b_radio.onReceivedString(str => {
+b_radio.onReceivedString((str: string) => {
     console.log(str)
 })
 
