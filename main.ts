@@ -356,6 +356,7 @@ basic.forever(() => {
                 console.log(pong.ballInterval)
 
                 pong.ball.moveX(pong.ball.velocity)
+                bounceCount++
             } else {
                 const winning_player = ballIdx === p1Idx ? "Player 1" : "Player 2"
                 console.log(`${winning_player} heeft gewonnen!`)
