@@ -310,6 +310,7 @@ class MicroPong {
     ownPlayer: Player
     ball: Ball
     ballInterval: number // Aantal seconden hoe lang het de bal duurt om 1 pixel te bewegen
+    gameEnded: boolean
 
     constructor() {
         this.p1 = new Player(0, 0) // Server
@@ -317,12 +318,17 @@ class MicroPong {
         this.ball = new Ball(1, 0, 1)
         this.ownPlayer = handshake.isServer ? this.p1 : this.p2
         this.ballInterval = 1
+        this.gameEnded = false
 
         r_events.registerEvent("player_position_update") // Dit event wordt door de client gebruikt om aan de server te laten weten waar player 2 (de client) is
         r_events.registerEvent("ball_position_update") // Dit event is om aan de client te laten weten waar de bal is
         r_events.registerEvent("end_game") // Dit is om de client te laten weten wanneer de game afgelopen is
 
         input.onButtonPressed(Button.A, () => {
+            if (this.ownPlayer.y === 0) {
+                return
+            }
+
             this.ownPlayer.moveY(-1)
             if (!handshake.isServer) {
                 r_events.fireEvent("player_position_update", this.ownPlayer.y.toString())
@@ -330,6 +336,10 @@ class MicroPong {
         })
 
         input.onButtonPressed(Button.B, () => {
+            if (this.ownPlayer.y === 4) {
+                return
+            }
+            
             this.ownPlayer.moveY(1)
             if (!handshake.isServer) {
                 r_events.fireEvent("player_position_update", this.ownPlayer.y.toString())
@@ -348,6 +358,7 @@ class MicroPong {
             })
 
             r_events.on("end_game", (msg: string) => {
+                console.log("Got end game request")
                 this.endGame(msg)
             })
         }
@@ -355,6 +366,11 @@ class MicroPong {
     }
 
     render() {
+        if (this.gameEnded) {
+            return
+        }
+
+        // Server is altijd player 1, de linker speler
         const x_offset = handshake.isServer ? 0 : 5
 
         basic.clearScreen()
@@ -365,6 +381,7 @@ class MicroPong {
     }
 
     endGame(msg: string) {
+        this.gameEnded = true
         basic.showString(msg)
         control.reset()
     }
