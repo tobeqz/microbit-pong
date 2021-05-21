@@ -370,7 +370,9 @@ basic.forever(() => {
                 bounceCount++
             } else {
                 const winning_player = ballIdx === p1Idx ? "Speler 1" : "Speler 2"
-                console.log(`${winning_player} heeft gewonnen! (${bounceCount} bounces)`)
+                const msg = `${winning_player} heeft gewonnen! (${bounceCount} bounces)`
+                this.endGame(msg)
+                r_events.fireEvent("end_game", msg)
             }
         }
 
