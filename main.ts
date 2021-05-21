@@ -287,7 +287,14 @@ class MicroPong {
     }
 
     render() {
+        // Server is altijd player 1 de linker speler
+        const x_offset = handshake.isServer ? 0 : 5
+
+        basic.clearScreen()
         
+        led.plot(this.p1.x - x_offset, this.p1.y)
+        led.plot(this.p2.x - x_offset, this.p2.y)
+        led.plot(this.ball.x - x_offset, this.ball.y)
     }
 }
 
