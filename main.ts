@@ -349,6 +349,7 @@ basic.forever(() => {
             if (ballIdx == p1Idx || ballIdx == p2Idx) {
                 pong.ball.velocity = -pong.ball.velocity
                 pong.ball.y = Math.round(Math.random() * 4)
+                pong.ball.moveX(pong.ball.velocity)
             } else {
                 const winning_player = ballIdx === p1Idx ? "Player 1" : "Player 2"
                 console.log(`${winning_player} heeft gewonnen!`)
