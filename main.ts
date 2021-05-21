@@ -241,6 +241,10 @@ class Coord {
         this.x = x 
         this.y = y
     }
+
+    toIndex() {
+        return this.y * 10 + this.x
+    }
 }
 
 class Movable extends Coord {
@@ -264,7 +268,6 @@ class Player extends Movable {
 }
 
 class Ball extends Movable {
-    position: Coord
     velocity: number // Alleen in x
 
     constructor(x: number, y: number, velocity: number) {
@@ -337,6 +340,21 @@ let lastBallTick = control.millis()
 basic.forever(() => {
     if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) {
         pong.ball.moveX(pong.ball.velocity)
+
+        if (pong.ball.x > 8 || pong.ball.x < 0) {
+            const ballIdx = pong.ball.toIndex()
+            const p1Idx = pong.p1.toIndex()
+            const p2Idx = pong.p2.toIndex()
+
+            if (ballIdx == p1Idx || ballIdx == p2Idx) {
+                pong.ball.velocity = -pong.ball.velocity
+                pong.ball.y = Math.round(Math.random() * 4)
+            } else {
+                const winning_player = ballIdx === p1Idx ? "Player 1" : "Player 2"
+                console.log(`${winning_player} heeft gewonnen!`)
+            }
+        }
+
         r_events.fireEvent("ball_position_update", `${pong.ball.x}/${pong.ball.y}`)
         lastBallTick = control.millis()
 
