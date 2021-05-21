@@ -53,7 +53,9 @@ class RadioWrapper {
     }
 
     sendString(stringToSend: string) {
-        const string_with_boundary = `\u{02}${stringToSend}\u{03}`
+        const start = String.fromCharCode(2)
+        const end = String.fromCharCode(3)
+        const string_with_boundary = `${start}${stringToSend}${end}`
         // 02 en 03 staan in ASCII voor start en einde respectievelijk
 
         for (let i = 0; i < string_with_boundary.length; i += 18) {
