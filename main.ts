@@ -311,7 +311,7 @@ class MicroPong {
                 this.p2.y = parseInt(pos_as_str)
             })
         } else {
-            r_events.on("ball_position_update", (pos) => {
+            r_events.on("ball_position_update", (pos: string) => {
                 const [x, y] = splitStringByCharacter(pos, "/")
                 this.ball.x = parseInt(x)
                 this.ball.y = parseInt(y)
