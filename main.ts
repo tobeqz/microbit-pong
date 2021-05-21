@@ -1,3 +1,6 @@
+radio.onReceivedString(str => {
+    console.log(str)
+})
 function splitStringToArray(str: string): string[] {
     const finalArray = []
 
