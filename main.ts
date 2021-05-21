@@ -283,7 +283,7 @@ class MicroPong {
     constructor() {
         this.p1 = new Player(0, 0)        
         this.p2 = new Player(9, 0)
-        this.ball = new Ball(5, 0, 1)
+        this.ball = new Ball(1, 0, 1)
         this.ownPlayer = handshake.isServer ? this.p1 : this.p2
 
         r_events.registerEvent("render")
@@ -308,14 +308,7 @@ class MicroPong {
                 // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
             })
-        } 
-
-        control.inBackground(() => {
-            while (true) {
-                control.waitMicros(this.ballInterval*1000000)
-                this.ball.moveX(this.ball.velocity)
-            }
-        })
+        }
     }
 
     render() {
@@ -332,6 +325,12 @@ class MicroPong {
 
 const pong = new MicroPong()
 
+let lastBallTick = control.millis()
 basic.forever(() => {
+    if (control.millis() - lastBallTick > pong.ballInterval && handshake.isServer) {
+        pong.ball.moveX(pong.ball.velocity)
+        lastBallTick = control.millis()
+    }
+
     pong.render()
 })
