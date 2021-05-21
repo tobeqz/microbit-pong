@@ -1,83 +1,3 @@
-/* 
- * Deze class is nodig omdat je maximaal 18 bytes
- * aan data kunt sturing via 1 sendString() call
- * dit staat HELEMAAL NERGENS in de documentatie
- * en ik kwam er na iets van 3 uur debuggen achter
- * dus bij deze, een radio wrapper die makecode eigenlijk
- * zelf moet supplyen als ze "beginnner friendly" willen
- * zijn. Het support alleen strings, omdat JSON.parse en
- * JSON.stringify te veel moeite waren voor microsoft
- * om te implementeren.
- */
-class RadioWrapper {
-    callbacks: Function[]
-    
-    constructor(radioGroup: number) {
-        radio.setGroup(radioGroup)
-        this.callbacks = []
-
-        let full_string = ""
-        radio.onReceivedString(slice => {
-            full_string += slice
-            if (slice[slice.length-1] == "\u{03}") {
-                for (const callback of this.callbacks) {
-                    callback(full_string)
-                }
-
-                full_string = ""
-            }
-        })
-    }
-
-    sendString(stringToSend: string) {
-        const string_with_boundary = `\u{02}${stringToSend}\u{03}`
-        // 02 en 03 staan in ASCII voor start en einde respectievelijk
-
-        for (let i = 0; i < string_with_boundary.length; i += 18) {
-            const slice = string_with_boundary.substr(i, 18)
-            radio.sendString(slice)
-        }
-    }
-    
-    onReceive(callback: Function) {
-        this.callbacks.push(callback)        
-    }
-}
-
-
-/**
- * Bij lager
- */
-/**
- * Vergelijk senderIds
- */
-/**
- * Lagere senderId is de server
- */
-/**
- * Bij hoger senderId, stuur inputs naar server en ontvang pong bal positie en
- */
-
-/**
- * Vind andere micro:bit
- */
-
-interface Coord {
-    x: number
-    y: number
-}
-
-interface Vec {
-    x: number
-    y: number
-}
-
-const microBitId = Math.ceil(Math.random() * 500000)
-
-function toRad(inp: number):number {
-    return inp * Math.PI/180
-}
-
 function splitStringToArray(str: string): string[] {
     const finalArray = []
 
@@ -102,224 +22,181 @@ function splitStringByCharacter(str:string, separator: string) {
     return finalArray
 }
 
-function renderPlayer() {
-    if (amIServer) {
-        const player1X = 0
-        const player1Y = [player1Location, player1Location + 1]
+/* 
+ * Deze class is nodig omdat je maximaal 18 bytes
+ * aan data kunt sturing via 1 sendString() call
+ * dit staat HELEMAAL NERGENS in de documentatie
+ * en ik kwam er na iets van 3 uur debuggen achter
+ * dus bij deze, een radio wrapper die makecode eigenlijk
+ * zelf moet supplyen als ze "beginnner friendly" willen
+ * zijn. Het support alleen strings, omdat JSON.parse en
+ * JSON.stringify te veel moeite waren voor microsoft
+ * om te implementeren.
+ */
+class RadioWrapper {
+    callbacks: Function[]
+    constructor(radioGroup: number) {
+        radio.setGroup(radioGroup)
+        this.callbacks = []
 
-        for (const xCoord of player1Y) {
-            led.plot(player1X, xCoord)
-        }
-    } else {
-        const player2X = 4
-        const player2Y = [player2Location, player2Location + 1]
+        let full_string = ""
+        radio.onReceivedString(slice => {
+            full_string += slice
+            if (slice[slice.length-1] == "\u{03}") {
+                for (const callback of this.callbacks) {
+                    callback(full_string.substr(1, full_string.length-1))
+                }
 
-        for (const xCoord of player2Y) {
-            led.plot(player2X, xCoord)
-        }
+                full_string = ""
+            }
+        })
     }
-}
 
+    sendString(stringToSend: string) {
+        const string_with_boundary = `\u{02}${stringToSend}\u{03}`
+        // 02 en 03 staan in ASCII voor start en einde respectievelijk
 
-
-let foundOtherMicroBit = false
-let amIServer = false
-
-let player1Location = 0
-let player2Location = 1
-
-const ballPosition: Coord = {
-    x: 0,
-    y: 3
-}
-
-const ballVec: Vec = {
-    x: 1,
-    y: 0
-}
-
-// Ball positie:
-// 0 0 0 0 | 0 0 0 0
-// 0 0 0 0 | 0 0 0 0
-// 0 0 0 0 | 0 0 0 0
-// 0 0 0 0 | 0 0 1 0
-// 0 0 0 0 | 0 0 0 0
-// Linker en rechter kolommen zijn van speler
-
-function renderBall() {
-    // Eerst afronden naar int
-    const intX = Math.floor(ballPosition.x)
-    const intY = Math.floor(ballPosition.y)
-
-    if (intY >= 0 && intY < 5) {
-        if (amIServer) {
-            if (intX < 4 && intX >=0) {
-                led.plot(intX + 1, intY)
-            }
-        } else {
-            if (intX > 3 && intX < 8) {
-                led.plot(intX - 4, intY)
-            }
+        for (let i = 0; i < string_with_boundary.length; i += 18) {
+            const slice = string_with_boundary.substr(i, 18)
+            radio.sendString(slice)
         }
     }
     
+    onReceive(callback: Function) {
+        this.callbacks.push(callback)        
+    }
 }
 
-// Request Types:
-// 1: poll
-// 2: poll response
-// 3: player update
-// 5: input from client
-// 6: ball x coord
-// 7: ball y coord
+const r = new RadioWrapper(5)
 
-const startTime = control.millis()
-let lastFrameTimestamp = control.millis()
 
-const ballspeed = 5 // LEDs/second
+class RadioEvent {
+    name: string
+    id: number
 
-basic.forever(() => {
-    // Als het werkt werkt het
-    if (!foundOtherMicroBit) {
-        radio.sendString(`1:${microBitId}`)
-        return
+    constructor(name: string, id: number) {
+        this.name = name
+        this.id = id 
     }
+}
 
-    // Kijk of de tijd sinds de laatste frame render lang genoeg is om een nieuwe frame te renderen
-    const deltaTime = control.millis() - lastFrameTimestamp
+class RadioEventListener {
+    event: RadioEvent
+    callback: Function
 
-    if (deltaTime > 1000/ballspeed && amIServer) {
-        lastFrameTimestamp = control.millis()
+    constructor(event: RadioEvent, callback: Function) {
+        this.event = event
+        this.callback = callback
+    }
+}
 
+class RadioEventHandler {
+    eventListeners: RadioEventListener[] 
+    events: RadioEvent[]
+    lastEventId: number
 
-        ballPosition.x += ballVec.x
-        ballPosition.y += ballVec.y
+    constructor() {
+        this.eventListeners = []
+        this.events = []
+        this.lastEventId = 0
+        radio.onReceivedString(str => {
+            // Deserialize
+            let eventIdAsStr = ""
+            let eventContent = ""
 
-        console.log(`Changing position ${ballPosition.x} ${ballPosition.y} ${ballVec.x} ${ballVec.y}`)
+            let foundSeperator = false
+            for (const char of str) {
+                if (char == "|") {
+                     foundSeperator = true
+                     continue
+                }
 
-
-        // console.log(`${ballPosition.x}, ${ballPosition.y}`)
-
-        if (ballPosition.y > 4 || ballPosition.y < 0) {
-            console.log("Y TOO IDK OUT OF BOUNDS")
-            ballVec.y = -ballVec.y
-            ballPosition.y = ballPosition.y > 4 ? Math.ceil(ballPosition.y) : Math.ceil(ballPosition.y)
-            ballPosition.y += ballVec.y
-        }
-
-        if (ballPosition.x > 7) {
-            console.log("Reached right boundary")
-            const randomAngle = -(Math.ceil(Math.random() * 90) + 45)
-            // const randomAngle = -111
-
-            console.log(randomAngle)
-
-            const x = Math.cos(toRad(randomAngle))
-            const y = Math.sin(toRad(randomAngle))
-
-            console.log 
-
-            ballVec.y = y
-            ballVec.x = x
-
-            ballPosition.x = Math.floor(ballPosition.x)
-            ballPosition.y = Math.floor(ballPosition.x)
-        }
-
-        if (ballPosition.x < 0) {
-            console.log("REached left boundary")
-            const randomAngle = Math.ceil(Math.random() * 90) + 45
-            console.log(randomAngle)
-
-            const x = Math.cos(toRad(randomAngle))
-            const y = Math.sin(toRad(randomAngle))
-
-            if (x < 0) {
-                console.log('AAAAAAAA x<0')
+                if (foundSeperator) {
+                    eventContent += char
+                } else {
+                    eventIdAsStr += char
+                }
             }
 
+            const eventId = parseInt(eventIdAsStr)
 
-            ballVec.y = y
-            ballVec.x = x
+            this.fireEventListener(eventId, eventContent)
+        })
+    }
 
-            ballPosition.x = Math.ceil(ballPosition.x)
-            ballPosition.y = Math.ceil(ballPosition.x)
+    on(eventName: string, eventHandler: Function) {
+        let event = this.findEvent(eventName);
+        // Maak nieuwe listener object aan als deze niet bestaat
+        
+
+        if (!event) {
+            event = new RadioEvent(eventName, this.lastEventId++) 
+        }
+        
+        const listener = new RadioEventListener(event, eventHandler)
+        this.eventListeners.push(listener)
+    }
+
+    private findEvent(identifier: number | string): RadioEvent | false {
+        for (const event of this.events) {
+            if (event.id === identifier || event.name === identifier) {
+                return event
+            }
         }
 
-        radio.sendString(`6:${ballPosition.x}`)
-        radio.sendString(`7:${ballPosition.y}`)
+        return false
     }
-
-    if (amIServer) {
-        radio.sendString(`3:${player2Location}`)
-    }
-
-    basic.clearScreen()
-    renderPlayer()
-    renderBall()
-})
-
-input.onButtonPressed(Button.A, () => {
-    if (amIServer) {
-        player1Location--
-    } else {
-        radio.sendString(`5:A`)
-    }
-})
-
-input.onButtonPressed(Button.B, () => {
-    if (amIServer) {
-        player1Location++
-    } else {
-        radio.sendString(`5:B`)
-    }
-})
-
-// Request Types:
-// 1: poll
-// 2: poll response
-// 3: player update
-// 4: ball update
-
-radio.onReceivedString(str => {
-    const strSplit = splitStringByCharacter(str, ":")
-    const inputType = strSplit[0]
-    const input = strSplit[1]
-
-    if (inputType == "1") {
-        console.log("Got poll request from: " + strSplit[1])
-        radio.sendString(`2:${microBitId}`)
-    }
-
-    if (inputType == "2") {
-        console.log("got poll response from: " + strSplit[1])
-        const otherMicroBitId = parseInt(strSplit[1])
-        foundOtherMicroBit = true
-
-        if (microBitId < otherMicroBitId) {
-            // console.log(`I am server ${microBitId}`)
-            // basic.showNumber(1)
-            amIServer = true
+    // Fire lokale listener
+    private fireEventListener(eventId: number, arg: string) {
+        // Zoek de correcte listeners op
+        
+        for (const listener of this.eventListeners) {
+            if (listener.event.id == eventId) {
+                listener.callback(arg)
+            }
         }
     }
 
-    if (inputType == "3") {
-        player2Location = parseInt(input)
-    }
+    // Fire event op andere microbits
+    fireEvent(eventName: string, arg: string) {
+        const event = this.findEvent(eventName)
 
-    if (inputType == "5" && amIServer) {
-        if (input == "A") {
-            player2Location--
-        } else {
-            player2Location++
+        if (!event) {
+            throw "No such event"
+        }
+
+        const eventId = event.id
+        r.sendString(`${eventId}|${arg}`)        
+    }
+}
+
+const r_events = new RadioEventHandler()
+// Radio handshake zorgt ervoor dat we een client-server model
+// kunnen hebben
+class RadioHandshake {
+    isServer: boolean;
+    foundMatch: boolean;
+
+    constructor() {
+        this.isServer = false
+        this.foundMatch = false
+        // Genereer een random nummer
+        const microBitId = Math.ceil(Math.random() * 500000)
+
+        r_events.on("handshake_request", (otherMicroBitIdStr: string) => {
+            this.foundMatch = true
+            const otherMicroBitId = parseInt(otherMicroBitIdStr)
+            this.isServer = otherMicroBitId > microBitId
+        })
+
+        while (!this.foundMatch) {
+            basic.pause(100)
+
+            r_events.fireEvent("handshake_request", microBitId.toString()) 
         }
     }
+}
 
-    if (inputType == "6") {
-        ballPosition.x = parseInt(input)
-    }
+const handshake = new RadioHandshake()
 
-    if (inputType == "7") {
-        ballPosition.y = parseInt(input)
-    }
-})
+console.log("Got handshake")
