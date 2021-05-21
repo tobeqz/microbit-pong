@@ -183,6 +183,10 @@ class RadioEventHandler {
         }
     }
 
+    registerEvent(eventName: string) {
+        this.events.push(new RadioEvent(eventName, this.lastEventId++))
+    }
+
     // Fire event op andere microbits
     fireEvent(eventName: string, arg: string) {
         const event = this.findEvent(eventName)
@@ -227,5 +231,68 @@ b_radio.onReceivedString((str: string) => {
 })
 
 const handshake = new RadioHandshake()
-
 console.log("Am I server? " + handshake.isServer)
+
+class Coord {
+    x: number
+    y: number
+    
+    constructor(x: number, y: number) {
+        this.x = x 
+        this.y = y
+    }
+}
+
+class Movable extends Coord {
+    constructor(x: number, y: number) {
+        super(x, y)
+    }
+
+    moveX(offset: number) {
+        this.x = this.x + offset
+    }
+
+    moveY(offset: number) {
+        this.y = this.y + offset
+    }
+}
+
+class Player extends Movable {
+    constructor(x: number, y: number) {
+        super(x, y)
+    }
+}
+
+class Ball extends Movable {
+    position: Coord
+    velocity: number // Alleen in x
+
+    constructor(x: number, y: number, velocity: number) {
+        super(x, y)
+    }
+}
+
+class MicroPong {
+    p1: Player
+    p2: Player
+    ball: Ball
+
+    constructor() {
+        this.p1 = new Player(0, 0)        
+        this.p2 = new Player(9, 0)
+        this.ball = new Ball(1, 0, 1)
+
+        r_events.registerEvent("render")
+        r_events.registerEvent("player_position")
+    }
+
+    render() {
+        
+    }
+}
+
+const pong = new MicroPong()
+
+basic.forever(() => {
+    pong.render()
+})
