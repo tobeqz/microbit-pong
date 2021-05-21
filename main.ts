@@ -68,7 +68,7 @@ class RadioWrapper {
             full_string += slice
             if (slice[slice.length-1] == "\u{03}") {
                 for (const callback of this.callbacks) {
-                    callback(full_string.substr(1, full_string.length-1))
+                    callback(full_string.substr(1, full_string.length-2))
                 }
 
                 full_string = ""
