@@ -269,6 +269,7 @@ class Ball extends Movable {
 
     constructor(x: number, y: number, velocity: number) {
         super(x, y)
+        this.velocity = 1
     }
 }
 
@@ -283,11 +284,24 @@ class MicroPong {
         this.ball = new Ball(5, 0, 1)
 
         r_events.registerEvent("render")
-        r_events.registerEvent("player_position")
+        r_events.registerEvent("player_position_update")
+
+        if (handshake.isServer()) { // Server
+            r_events.on("player_position_update", (pos_as_str: string) => {
+                // Player 2's x coord is altijd 9
+                this.p2.y = parseInt(pos_as_str)
+            })
+        } else { // Client
+            input.onButtonPressed(Button.A, () => {
+                this.p2.moveY(-1)
+                r_events.fireEvent("player_position_update", this.p2.y.toString())
+            })
+        }
+
     }
 
     render() {
-        // Server is altijd player 1 de linker speler
+        // Server is altijd player 1, de linker speler
         const x_offset = handshake.isServer ? 0 : 5
 
         basic.clearScreen()
