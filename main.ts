@@ -1,3 +1,18 @@
+// Ik heb bewust gekozen om het spel van pong een beetje aan te passen
+// normaal gaat het balletje in een bepaalde hoek de andere kant op,
+// afhankelijk van de snelheid waarmee je heb raakt. Dit is op
+// zo'n klein scherm als deze eigenlijk onmogelijk omdat er niet
+// echt een snelheid bestaat van de player. Ook is het als speler
+// heel moeilijk om in te schatten waar het balletje heen gaat in de volgende
+// frame, waardoor het moeilijk wordt om hem te weerkaatsen.
+//
+// In plaats van de standaard pong, hebben we MicroPong gemaakt (zelf bedacht)
+// De bal heeft een bepaalde snelheid (pong.ballInterval) en deze wordt sneller
+// naarmate je vaker het balletje heen en weer speelt. Ook gaat het balletje elke
+// keer in een rechte lijn, parallel tot de x-as. Elke keer als je de bal
+// weerkaatst, wordt de y positie gerandomized en de velocity omgedraaid.
+
+
 function splitStringToArray(str: string): string[] {
     const finalArray = []
 
