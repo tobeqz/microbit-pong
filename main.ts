@@ -369,10 +369,10 @@ basic.forever(() => {
                 pong.ball.moveX(pong.ball.velocity)
                 bounceCount++
             } else {
-                const winning_player = ballIdx === p1Idx ? "Speler 2" : "Speler 3"
+                const winning_player = ballIdx === p1Idx ? "Speler 2" : "Speler 2"
                 const msg = `${winning_player} heeft gewonnen! (${bounceCount} bounces)`
-                pong.endGame(msg)
                 r_events.fireEvent("end_game", msg)
+                pong.endGame(msg)
             }
         }
 
