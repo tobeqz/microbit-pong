@@ -352,8 +352,7 @@ basic.forever(() => {
                 pong.ball.velocity = -pong.ball.velocity
                 pong.ball.y = Math.round(Math.random() * 4)
                 
-                bounceDirection = -bounceDirection
-                pong.ball.velocity = 1 / (0.5*bounceCount + 1) * bounceDirection
+                pong.ballInterval = 1 / (0.5*bounceCount + 1) * bounceDirection
 
                 pong.ball.moveX(pong.ball.velocity)
             } else {
