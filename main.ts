@@ -205,6 +205,3 @@ radio.onReceivedString(str => {
 
 const handshake = new RadioHandshake()
 
-console.log("Got handshake")
-    console.log(str)
-})
