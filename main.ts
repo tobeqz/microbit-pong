@@ -285,6 +285,7 @@ class MicroPong {
         this.p2 = new Player(9, 0)
         this.ball = new Ball(1, 0, 1)
         this.ownPlayer = handshake.isServer ? this.p1 : this.p2
+        this.ballInterval = 1
 
         r_events.registerEvent("render")
         r_events.registerEvent("player_position_update")
