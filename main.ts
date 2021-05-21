@@ -228,3 +228,4 @@ b_radio.onReceivedString((str: string) => {
 
 const handshake = new RadioHandshake()
 
+console.log("Am I server? " + handshake.isServer)
