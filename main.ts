@@ -1,6 +1,3 @@
-radio.onReceivedString(str => {
-    console.log(str)
-})
 function splitStringToArray(str: string): string[] {
     const finalArray = []
 
@@ -202,7 +199,12 @@ class RadioHandshake {
         }
     }
 }
+radio.onReceivedString(str => {
+    console.log(str)
+}
 
 const handshake = new RadioHandshake()
 
 console.log("Got handshake")
+    console.log(str)
+})
