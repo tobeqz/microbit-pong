@@ -413,7 +413,7 @@ basic.forever(() => {
             } else {
                 const winning_player = ballIdx === p1Idx ? pong.p1 : pong.p2 
 
-                if (winning_player === pong.ownPlayer) {
+                if (winning_player !== pong.ownPlayer) {
                     r_events.fireEvent("end_game", `Verloren! (${bounceCount})`)
                     basic.pause(30)
                     pong.endGame(`Gewonnen! (${bounceCount})`)
