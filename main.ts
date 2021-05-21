@@ -276,28 +276,38 @@ class Ball extends Movable {
 class MicroPong {
     p1: Player
     p2: Player
+    ownPlayer: Player
     ball: Ball
 
     constructor() {
         this.p1 = new Player(0, 0)        
         this.p2 = new Player(9, 0)
         this.ball = new Ball(5, 0, 1)
+        this.ownPlayer = handshake.isServer ? this.p1 : this.p2
 
         r_events.registerEvent("render")
         r_events.registerEvent("player_position_update")
+
+        input.onButtonPressed(Button.A, () => {
+            this.ownPlayer.moveY(-1)
+            if (!handshake.isServer) {
+                r_events.fireEvent("player_position_update", this.ownPlayer.y.toString())
+            }
+        })
+
+        input.onButtonPressed(Button.B, () => {
+            this.ownPlayer.moveY(1)
+            if (!handshake.isServer) {
+                r_events.fireEvent("player_position_update", this.ownPlayer.y.toString())
+            }
+        })
 
         if (handshake.isServer) { // Server
             r_events.on("player_position_update", (pos_as_str: string) => {
                 // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
             })
-        } else { // Client
-            input.onButtonPressed(Button.A, () => {
-                this.p2.moveY(-1)
-                r_events.fireEvent("player_position_update", this.p2.y.toString())
-            })
-        }
-
+        } 
     }
 
     render() {
