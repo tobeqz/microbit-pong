@@ -327,7 +327,7 @@ const pong = new MicroPong()
 
 let lastBallTick = control.millis()
 basic.forever(() => {
-    if (control.millis() - lastBallTick > pong.ballInterval && handshake.isServer) {
+    if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) {
         pong.ball.moveX(pong.ball.velocity)
         lastBallTick = control.millis()
     }
