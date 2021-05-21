@@ -289,6 +289,7 @@ class MicroPong {
 
         r_events.registerEvent("render")
         r_events.registerEvent("player_position_update")
+        r_events.registerEvent("ball_position_update")
 
         input.onButtonPressed(Button.A, () => {
             this.ownPlayer.moveY(-1)
@@ -308,6 +309,12 @@ class MicroPong {
             r_events.on("player_position_update", (pos_as_str: string) => {
                 // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
+            })
+        } else {
+            r_events.on("ball_position_update", (pos) => {
+                const [x, y] = splitStringByCharacter(pos, "/")
+                this.ball.x = parseInt(x)
+                this.ball.y = parseInt(y)
             })
         }
     }
@@ -330,7 +337,9 @@ let lastBallTick = control.millis()
 basic.forever(() => {
     if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) {
         pong.ball.moveX(pong.ball.velocity)
+        r_events.fireEvent("ball_position_update", `${pong.ball.x}/${pong.ball.y}`)
         lastBallTick = control.millis()
+
     }
 
     pong.render()
