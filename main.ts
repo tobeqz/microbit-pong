@@ -312,7 +312,7 @@ class MicroPong {
 
         control.inBackground(() => {
             while (true) {
-                basic.pause(this.ballInterval*1000)
+                control.wait(this.ballInterval*1000000)
                 this.ball.moveX(this.ball.velocity)
             }
         })
