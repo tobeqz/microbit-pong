@@ -32,6 +32,7 @@ class BetterRadio {
     constructor() {
         this.callbacks = []
 
+        // Call alle callbacks die toegevoegd zijn
         radio.onReceivedString((str: string) => {
             for (const callback of this.callbacks) {
                 callback(str)
@@ -40,6 +41,7 @@ class BetterRadio {
     }
 
     onReceivedString(callback: Function) {
+        // Voeg callback toe aan lijst met listeners
         this.callbacks.push(callback)
     }
 }
@@ -59,14 +61,17 @@ const b_radio = new BetterRadio()
  */
 class RadioWrapper {
     callbacks: Function[]
+
     constructor(radioGroup: number) {
         radio.setGroup(radioGroup)
         this.callbacks = []
 
         let full_string = ""
         b_radio.onReceivedString((slice: string) => {
+            // Voeg deze slice aan de uiteindelijke message toe
             full_string += slice
             if (slice[slice.length-1] == "\u{03}") {
+                // Call alle callbacks met de uiteindelijke string - de start en end bytes
                 for (const callback of this.callbacks) {
                     callback(full_string.substr(1, full_string.length-2))
                 }
@@ -83,6 +88,9 @@ class RadioWrapper {
         // 02 en 03 staan in ASCII voor start en einde respectievelijk
 
         for (let i = 0; i < string_with_boundary.length; i += 18) {
+            // Maximale lengte is 18 bytes, dus deel de string op in stukjes van 18 chars
+            // Dit is de reden dat UTF-8 niet supported is door deze
+            // radio class. een UTF-8 char is langer dan 1 byte.
             const slice = string_with_boundary.substr(i, 18)
             radio.sendString(slice)
         }
@@ -115,6 +123,8 @@ class RadioEventListener {
     }
 }
 
+// Events zullen geserialized worden als:
+// ${eventId}|${eventContent}
 class RadioEventHandler {
     eventListeners: RadioEventListener[] 
     events: RadioEvent[]
@@ -151,9 +161,8 @@ class RadioEventHandler {
 
     on(eventName: string, eventHandler: Function) {
         let event = this.findEvent(eventName);
-        // Maak nieuwe listener object aan als deze niet bestaat
-        
 
+        // Maak nieuwe listener object aan als deze niet bestaat
         if (!event) {
             event = new RadioEvent(eventName, this.lastEventId++) 
             this.events.push(event)
@@ -183,6 +192,8 @@ class RadioEventHandler {
         }
     }
 
+    // Dit is nodig zodat allebei de microbits dezelfde ID's associeren
+    // met dezelfde event names.
     registerEvent(eventName: string) {
         this.events.push(new RadioEvent(eventName, this.lastEventId++))
     }
@@ -201,8 +212,14 @@ class RadioEventHandler {
 }
 
 const r_events = new RadioEventHandler()
+
 // Radio handshake zorgt ervoor dat we een client-server model
-// kunnen hebben
+// kunnen hebben. Wat hier gebeurt, is dat allebei de microbits
+// een random nummer genereren, de microbit met het lagere nummer
+// zal server zijn. Ik wilde eerst iets implementeren zodat
+// het rekenening zou houden met de mogelijkheid dat er
+// dezelfde nummers gegenereerd zou kunnen worden, maar die kans is
+// 4*10^-9 % en dus vond ik het onnodig
 class RadioHandshake {
     isServer: boolean;
     foundMatch: boolean;
@@ -219,6 +236,8 @@ class RadioHandshake {
             this.isServer = otherMicroBitId > microBitId
         })
 
+        // De while loop zorgt ervoor dat de game niet start voordat
+        // er een andere microbit is gevonden
         while (!this.foundMatch) {
             basic.pause(100)
 
@@ -226,12 +245,21 @@ class RadioHandshake {
         }
     }
 }
-b_radio.onReceivedString((str: string) => {
-    console.log(str)
-})
 
 const handshake = new RadioHandshake()
-console.log("Am I server? " + handshake.isServer)
+console.log(`Am I server? ${handshake.isServer}`)
+
+// De grid is 5x10 en wordt onderverdeeld tussen 2 microbits
+
+// x ->
+// 0 1 2 3 4  5 6 7 8 9 
+// x x x x x  x x x x x 0 
+// x x x x x  x x x x x 1 y
+// x x x x x  x x x x x 2 
+// x x x x x  x x x x x 3 |
+// x x x x x  x x x x x 4 v
+// |-------|  |-------|
+//  SERVER     CLIENT
 
 class Coord {
     x: number
@@ -284,16 +312,15 @@ class MicroPong {
     ballInterval: number // Aantal seconden hoe lang het de bal duurt om 1 pixel te bewegen
 
     constructor() {
-        this.p1 = new Player(0, 0)        
-        this.p2 = new Player(9, 0)
+        this.p1 = new Player(0, 0) // Server
+        this.p2 = new Player(9, 0) // Client
         this.ball = new Ball(1, 0, 1)
         this.ownPlayer = handshake.isServer ? this.p1 : this.p2
         this.ballInterval = 1
 
-        r_events.registerEvent("render")
-        r_events.registerEvent("player_position_update")
-        r_events.registerEvent("ball_position_update")
-        r_events.registerEvent("end_game")
+        r_events.registerEvent("player_position_update") // Dit event wordt door de client gebruikt om aan de server te laten weten waar player 2 (de client) is
+        r_events.registerEvent("ball_position_update") // Dit event is om aan de client te laten weten waar de bal is
+        r_events.registerEvent("end_game") // Dit is om de client te laten weten wanneer de game afgelopen is
 
         input.onButtonPressed(Button.A, () => {
             this.ownPlayer.moveY(-1)
@@ -311,7 +338,6 @@ class MicroPong {
 
         if (handshake.isServer) { // Server event listeners
             r_events.on("player_position_update", (pos_as_str: string) => {
-                // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
             })
         } else {
@@ -329,7 +355,6 @@ class MicroPong {
     }
 
     render() {
-        // Server is altijd player 1, de linker speler
         const x_offset = handshake.isServer ? 0 : 5
 
         basic.clearScreen()
@@ -347,11 +372,10 @@ class MicroPong {
 
 const pong = new MicroPong()
 let bounceCount = 0
-let bounceDirection = 1
 
 let lastBallTick = control.millis()
 basic.forever(() => {
-    if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) {
+    if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) { // De server doet alle simulaties en berekeningen, de client stuur alleen zijn bewegingen naar de server en rendert zijn kant van het scherm
         pong.ball.moveX(pong.ball.velocity)
 
         if (pong.ball.x === 9 || pong.ball.x === 0) {
@@ -360,11 +384,12 @@ basic.forever(() => {
             const p2Idx = pong.p2.toIndex()
 
             if (ballIdx == p1Idx || ballIdx == p2Idx) {
+                // Bal gaat precies de andere kant op en beweegt naar een willekeurig y coördinaat
                 pong.ball.velocity = -pong.ball.velocity
                 pong.ball.y = Math.round(Math.random() * 4)
                 
-                pong.ballInterval = 1 / (0.5*bounceCount + 1) * bounceDirection
-                console.log(pong.ballInterval)
+                // Maak de bal sneller
+                pong.ballInterval = 1 / (0.5*bounceCount + 1)
 
                 pong.ball.moveX(pong.ball.velocity)
                 bounceCount++
@@ -385,7 +410,6 @@ basic.forever(() => {
 
         r_events.fireEvent("ball_position_update", `${pong.ball.x}/${pong.ball.y}`)
         lastBallTick = control.millis()
-
     }
 
     pong.render()
