@@ -39,7 +39,7 @@ class BetterRadio {
         })
     }
 
-    onReceiveString(callback: Function) {
+    onReceivedString(callback: Function) {
         this.callbacks.push(callback)
     }
 }
