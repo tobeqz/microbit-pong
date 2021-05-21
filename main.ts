@@ -341,7 +341,7 @@ basic.forever(() => {
     if (control.millis() - lastBallTick > pong.ballInterval * 1000 && handshake.isServer) {
         pong.ball.moveX(pong.ball.velocity)
 
-        if (pong.ball.x > 8 || pong.ball.x < 0) {
+        if (pong.ball.x === 9 || pong.ball.x === 0) {
             const ballIdx = pong.ball.toIndex()
             const p1Idx = pong.p1.toIndex()
             const p2Idx = pong.p2.toIndex()
