@@ -22,6 +22,30 @@ function splitStringByCharacter(str:string, separator: string) {
     return finalArray
 }
 
+/*
+ * Natuurlijk kun je ook maar 1 callback bij de standaard
+ * radio module, dus ik doe weer even microsoft's werk
+ */
+class BetterRadio {
+    callbacks: Function[]    
+
+    constructor() {
+        this.callbacks = []
+
+        radio.onReceivedString(str => {
+            for (const callback of this.callbacks) {
+                callback(str)
+            }
+        })
+    }
+
+    onReceiveString(callback: Function) {
+        this.callbacks.push(callback)
+    }
+}
+
+const b_radio = new BetterRadio()
+
 /* 
  * Deze class is nodig omdat je maximaal 18 bytes
  * aan data kunt sturing via 1 sendString() call
@@ -40,7 +64,7 @@ class RadioWrapper {
         this.callbacks = []
 
         let full_string = ""
-        radio.onReceivedString(slice => {
+        b_radio.onReceivedString(slice => {
             full_string += slice
             if (slice[slice.length-1] == "\u{03}") {
                 for (const callback of this.callbacks) {
@@ -71,7 +95,6 @@ class RadioWrapper {
 
 const r = new RadioWrapper(5)
 
-
 class RadioEvent {
     name: string
     id: number
@@ -101,7 +124,7 @@ class RadioEventHandler {
         this.eventListeners = []
         this.events = []
         this.lastEventId = 0
-        radio.onReceivedString(str => {
+        r.onReceive(str => {
             // Deserialize
             let eventIdAsStr = ""
             let eventContent = ""
@@ -199,7 +222,7 @@ class RadioHandshake {
         }
     }
 }
-radio.onReceivedString(str => {
+b_radio.onReceivedString(str => {
     console.log(str)
 })
 
