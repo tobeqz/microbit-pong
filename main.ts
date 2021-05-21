@@ -293,6 +293,7 @@ class MicroPong {
         r_events.registerEvent("render")
         r_events.registerEvent("player_position_update")
         r_events.registerEvent("ball_position_update")
+        r_events.registerEvent("end_game")
 
         input.onButtonPressed(Button.A, () => {
             this.ownPlayer.moveY(-1)
@@ -319,7 +320,12 @@ class MicroPong {
                 this.ball.x = parseInt(x)
                 this.ball.y = parseInt(y)
             })
+
+            r_events.on("end_game", (msg: string) => {
+                this.endGame(msg)
+            })
         }
+
     }
 
     render() {
@@ -331,6 +337,11 @@ class MicroPong {
         led.plot(this.p1.x - x_offset, this.p1.y)
         led.plot(this.p2.x - x_offset, this.p2.y)
         led.plot(this.ball.x - x_offset, this.ball.y)
+    }
+
+    endGame(msg: string) {
+        basic.showString(msg)
+        control.reset()
     }
 }
 
@@ -358,8 +369,8 @@ basic.forever(() => {
                 pong.ball.moveX(pong.ball.velocity)
                 bounceCount++
             } else {
-                const winning_player = ballIdx === p1Idx ? "Player 1" : "Player 2"
-                console.log(`${winning_player} heeft gewonnen!`)
+                const winning_player = ballIdx === p1Idx ? "Speler 1" : "Speler 2"
+                console.log(`${winning_player} heeft gewonnen! (${bounceCount} bounces)`)
             }
         }
 
