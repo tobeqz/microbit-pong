@@ -269,7 +269,7 @@ class Ball extends Movable {
 
     constructor(x: number, y: number, velocity: number) {
         super(x, y)
-        this.velocity = 1
+        this.velocity = velocity
     }
 }
 
@@ -286,7 +286,7 @@ class MicroPong {
         r_events.registerEvent("render")
         r_events.registerEvent("player_position_update")
 
-        if (handshake.isServer()) { // Server
+        if (handshake.isServer) { // Server
             r_events.on("player_position_update", (pos_as_str: string) => {
                 // Player 2's x coord is altijd 9
                 this.p2.y = parseInt(pos_as_str)
